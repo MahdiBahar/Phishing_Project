@@ -97,11 +97,12 @@ def main(image1_path, image2_path):
 
 if __name__ == "__main__":
     # Replace with your image paths
-    # img1_path = "/home/mahdi/phishing/bankmellat_pic5.png"
-    img1_path = "/home/mahdi/phishing/bankmellat_pic3.jpeg"
-    # img2_path = "/home/mahdi/phishing/banktejarat_pic8.png"
-    # img2_path = "/home/mahdi/phishing/bankghavamin_pic7.jpg"
-    img2_path = "/home/mahdi/phishing/bankmellat_pic4.png"
+    img1= 'bankmellat_pic3.jpeg'
+    img2 = 'bankghavamin_pic7.jpg'
+  
+    img1_path = f"/home/mahdi/Phishing_Project/images/{img1}"
+    img2_path = f"/home/mahdi/Phishing_Project/images/{img2}"
+
     img1_name = img1_path.split('/')[-1]
     img2_name = img2_path.split('/')[-1]
     main(img1_path, img2_path)
