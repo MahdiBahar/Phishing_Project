@@ -1,0 +1,7 @@
+tensorflow
+matplotlib
+torch 
+torchvision 
+opencv-python-headless 
+scikit-image 
+notebook
