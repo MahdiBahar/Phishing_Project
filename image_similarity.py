@@ -96,6 +96,7 @@ def load_models():
 #  Extract features and compute cosine similarity
 def compute_similarity(img1_path, img2_path, dl_models , transform):
     print("\n### PyTorch Models ###")
+    similarity_dict = {}
     for name, model in dl_models.items():
         model.eval()
         with torch.no_grad():
@@ -107,8 +108,35 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
             features2 = model(img2).squeeze().numpy()
 
             # Compute cosine similarity
-            similarity = compute_cosine_similarity(features1, features2)
+            similarity = float(compute_cosine_similarity(features1, features2))
+            # similarity_list.append(round(similarity,4))
+            similarity_dict[name]= round(similarity,4)
             print(f"{name} Cosine Similarity: {similarity:.4f}")
+
+    return similarity_dict
+
+
+def make_decision (img1_path):
+
+    # Call load_models to initialize both PyTorch models
+    dl_models = load_models()
+
+    for i in range(0, len(valid_img)):
+        img2_path = f"/home/mahdi/Phishing_Project/Valid_images/{valid_img[i]}"
+        print(f"considered picture {img1} compare with {valid_img[i]}")
+        print('Results:')
+        all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+        print(f"all dl similarity are {all_similarity}")
+        good_matches, kp1, kp2, keypoints1, keypoints2, matches = sift_similarity(img1_path, img2_path)
+        SIFT_result_similarity = round((good_matches / min(kp1, kp2)),4)
+        print(f"SIFT Match Ratio: {SIFT_result_similarity:.4f}")
+        ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
+        print(f"SSIM Score: {ssim_result_similarity:.4f}")
+
+        all_similarity["SIFT"]= SIFT_result_similarity
+        all_similarity["SSIM"]= ssim_result_similarity
+        # final_result = [dl_similarity, SIFT_result_similarity,ssim_result_similarity ]
+        print(f"all similarity are {all_similarity}")
 
 
 ##########################################################################
@@ -129,16 +157,4 @@ if __name__ == "__main__":
     img1_path = f"/home/mahdi/Phishing_Project/Valid_images/{img1}"
     # show_image(img1_path, title="Original Image 1")
 
-    # Call load_models to initialize both PyTorch models
-    dl_models = load_models()
-    for i in range(0, len(valid_img)):
-        img2_path = f"/home/mahdi/Phishing_Project/Valid_images/{valid_img[i]}"
-        # show_image(img2_path, title="Original Image 2")
-        print(f"considered picture {img1} compare with {valid_img[i]}")
-        print('Results:')
-        compute_similarity(img1_path, img2_path, dl_models, transform)
-        good_matches, kp1, kp2, keypoints1, keypoints2, matches = sift_similarity(img1_path, img2_path)
-        print(f"SIFT Match Ratio: {good_matches / min(kp1, kp2):.4f}")
-        ssim_score = compute_ssim(img1_path, img2_path)
-        print(f"SSIM Score: {ssim_score:.4f}")
-    
+    make_decision(img1_path)
