@@ -2,13 +2,18 @@
 
 import cv2
 import numpy as np
-import torch
-import torchvision.transforms as transforms
-from torchvision.models import resnet50, vgg16, efficientnet_b0
-from torchvision.models import ResNet50_Weights, VGG16_Weights, EfficientNet_B0_Weights
 from scipy.spatial.distance import cosine
 from skimage.metrics import structural_similarity as ssim
+import torch
+import torchvision.transforms as transforms
+from torchvision.models import (
+    vgg16, efficientnet_b0, mobilenet_v2)
+from torchvision.models import (
+     VGG16_Weights, EfficientNet_B0_Weights, MobileNet_V2_Weights
+    )
+import matplotlib.pyplot as plt
 
+##########################################################
 # Utility function for SSIM
 def compute_ssim(image1_path, image2_path):
     img1 = cv2.imread(image1_path, cv2.IMREAD_GRAYSCALE)
@@ -21,6 +26,8 @@ def compute_ssim(image1_path, image2_path):
     similarity, _ = ssim(img1, img2, full=True)
     return similarity
 
+##############################################################
+
 # Utility functions for classical feature descriptors (SIFT)
 def sift_similarity(image1_path, image2_path):
     sift = cv2.SIFT_create()
@@ -28,6 +35,9 @@ def sift_similarity(image1_path, image2_path):
     img2 = cv2.imread(image2_path, cv2.IMREAD_GRAYSCALE)
     kp1, des1 = sift.detectAndCompute(img1, None)
     kp2, des2 = sift.detectAndCompute(img2, None)
+    
+    if des1 is None or des2 is None:
+        return 0, 0, 0, [], [], []
     
     # Match descriptors using FLANN
     index_params = dict(algorithm=1, trees=5)
@@ -37,8 +47,10 @@ def sift_similarity(image1_path, image2_path):
     
     # Apply Lowe's ratio test
     good_matches = [m for m, n in matches if m.distance < 0.7 * n.distance]
-    return len(good_matches), len(kp1), len(kp2)
+    return len(good_matches), len(kp1), len(kp2), kp1, kp2, good_matches
 
+
+####################################################################
 # Utility functions for deep learning models
 def extract_features_dl(image_path, model, transform):
     img = cv2.imread(image_path)
@@ -48,61 +60,85 @@ def extract_features_dl(image_path, model, transform):
         features = model(img_tensor)
     return features.squeeze().numpy()
 
+
 def compute_cosine_similarity(features1, features2):
     return 1 - cosine(features1, features2)
 
-def feature_extraction_and_similarity(image1_path, image2_path, model, transform):
-    features1 = extract_features_dl(image1_path, model, transform)
-    features2 = extract_features_dl(image2_path, model, transform)
-    cosine_sim = compute_cosine_similarity(features1, features2)
-    return cosine_sim
-
-# Main comparison logic
-def main(image1_path, image2_path):
-    print("\n### Deep Learning Model Comparisons ###")
-
-    # Load pre-trained models
-    models = {
-        "ResNet50": resnet50(weights=ResNet50_Weights.DEFAULT),
-        "VGG16": vgg16( weights=VGG16_Weights.DEFAULT),
-        "EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
-    }
-    
-    # Common transform
-    transform = transforms.Compose([
+############################################################
+## Preprocessing
+# Common transform
+transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     
-    # Evaluate each model
-    for name, model in models.items():
-        model.fc = torch.nn.Identity()  # Remove classification layer for ResNet
+# Preprocess image for PyTorch
+def preprocess_dl_image(image_path):
+    img = cv2.imread(image_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = transform(img).unsqueeze(0)
+    return img
+
+############################################################
+# Load pretrained models
+def load_models():
+    # PyTorch models
+    pytorch_models = {
+        "VGG16": vgg16(weights=VGG16_Weights.DEFAULT),
+        "EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT),
+        "MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT),
+    }
+    return pytorch_models
+
+
+#  Extract features and compute cosine similarity
+def compute_similarity(img1_path, img2_path, dl_models , transform):
+    print("\n### PyTorch Models ###")
+    for name, model in dl_models.items():
         model.eval()
-        similarity = feature_extraction_and_similarity(image1_path, image2_path, model, transform)
-        print(f"{name} Cosine Similarity: {similarity:.4f}")
+        with torch.no_grad():
+                        # Preprocess images
+            img1 = preprocess_dl_image(img1_path)
+            img2 = preprocess_dl_image(img2_path)
+            # Extract features
+            features1 = model(img1).squeeze().numpy()
+            features2 = model(img2).squeeze().numpy()
 
-    print("\n### Structural Similarity Index (SSIM) ###")
-    ssim_score = compute_ssim(image1_path, image2_path)
-    print(f"SSIM Score: {ssim_score:.4f}")
-    
-    print("\n### Classical Feature Descriptor: SIFT ###")
-    good_matches, kp1, kp2 = sift_similarity(image1_path, image2_path)
-    print(f"Number of good matches: {good_matches}")
-    print(f"Keypoints in Image 1: {kp1}, Image 2: {kp2}")
-    print(f"SIFT Match Ratio: {good_matches / min(kp1, kp2):.4f}")
+            # Compute cosine similarity
+            similarity = compute_cosine_similarity(features1, features2)
+            print(f"{name} Cosine Similarity: {similarity:.4f}")
 
-    print(f"comparison between {img1_name} and {img2_name}")
 
+##########################################################################
 if __name__ == "__main__":
     # Replace with your image paths
-    img1= 'bankmellat_pic3.jpeg'
-    img2 = 'bankghavamin_pic7.jpg'
-  
-    img1_path = f"/home/mahdi/Phishing_Project/images/{img1}"
-    img2_path = f"/home/mahdi/Phishing_Project/images/{img2}"
+    # img1= 'bankmellat_pic3.jpeg'
+# img2 = 'bankghavamin_pic7.jpg'
+    img1= 'BM_LOGO-01.png' 
+    # img2= 'banktejarat_pic8.png'
+    # img1= 'cat.jpg'
+    # img2= 'flower.jpg'
+    # img1 = 'mellal.png'
+    # img2 = 'bankmellat_pic6.jpeg'
+    # img2= 'bankmellat_pic5.png'
 
-    img1_name = img1_path.split('/')[-1]
-    img2_name = img2_path.split('/')[-1]
-    main(img1_path, img2_path)
+    valid_img = ['BM_LOGO-00.png' , 'BM_LOGO-01.png' ,  'BM_LOGO-02.png' , 'BM_LOGO-03.png' , 'BM_LOGO-04.png', 'BM_LOGO-05.png']
+
+    img1_path = f"/home/mahdi/Phishing_Project/Valid_images/{img1}"
+    # show_image(img1_path, title="Original Image 1")
+
+    # Call load_models to initialize both PyTorch models
+    dl_models = load_models()
+    for i in range(0, len(valid_img)):
+        img2_path = f"/home/mahdi/Phishing_Project/Valid_images/{valid_img[i]}"
+        # show_image(img2_path, title="Original Image 2")
+        print(f"considered picture {img1} compare with {valid_img[i]}")
+        print('Results:')
+        compute_similarity(img1_path, img2_path, dl_models, transform)
+        good_matches, kp1, kp2, keypoints1, keypoints2, matches = sift_similarity(img1_path, img2_path)
+        print(f"SIFT Match Ratio: {good_matches / min(kp1, kp2):.4f}")
+        ssim_score = compute_ssim(img1_path, img2_path)
+        print(f"SSIM Score: {ssim_score:.4f}")
+    
