@@ -120,8 +120,9 @@ def make_decision (img1_path):
 
     # Call load_models to initialize both PyTorch models
     dl_models = load_models()
-
+    final_decision = "no similarity" 
     for i in range(0, len(valid_img)):
+        count_vote = 0
         img2_path = f"/home/mahdi/Phishing_Project/Valid_images/{valid_img[i]}"
         print(f"considered picture {img1} compare with {valid_img[i]}")
         print('Results:')
@@ -138,7 +139,25 @@ def make_decision (img1_path):
         # final_result = [dl_similarity, SIFT_result_similarity,ssim_result_similarity ]
         print(f"all similarity are {all_similarity}")
 
+        if all_similarity["VGG16"] >=0.25:
+            count_vote+=1
+        if all_similarity["EfficientNet_B0"]>=0.20:
+            count_vote+=1
+        if all_similarity["MobileNet"]>=0.20:
+            count_vote+=1
+        if all_similarity["SIFT"]>=0.20:
+            count_vote+=1
+        if all_similarity["SSIM"]>=0.20:
+            count_vote+=1
 
+        print(f"Vote count: {count_vote}")
+
+          # Decision based on votes
+        if count_vote > 3:
+            print("Decision: Similar (Passed threshold)")
+            final_decision = "similar"
+
+    return final_decision
 ##########################################################################
 if __name__ == "__main__":
     # Replace with your image paths
