@@ -78,7 +78,7 @@ def load_models():
 
 #  Extract features and compute cosine similarity
 def compute_similarity(img1_path, img2_path, dl_models , transform):
-    print("\n### PyTorch Models ###")
+    # print("\n### PyTorch Models ###")
     similarity_dict = {}
 
         # Preprocess both images (handle all formats, including PNG fixes)
@@ -101,66 +101,46 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
             similarity = float(compute_cosine_similarity(features1, features2))
             # similarity_list.append(round(similarity,4))
             similarity_dict[name]= round(similarity,4)
-            print(f"{name} Cosine Similarity: {similarity:.4f}")
+            # print(f"{name} Cosine Similarity: {similarity:.4f}")
 
     return similarity_dict
 
 
-def make_decision (img1_path, valid_img, transform):
+def make_decision (img1_path, valid_img, valid_img_path):
 
     # Call load_models to initialize both PyTorch models
     dl_models = load_models()
-    final_decision = "no similarity" 
+    final_decision = "no similarity"
+    flag_decision = 0 
     for i in range(0, len(valid_img)):
         count_vote = 0
-        img2_path = f"/home/mahdi/Phishing_Project/Valid_images/{valid_img[i]}"
-        print(f"considered picture {img1} compare with {valid_img[i]}")
-        print('Results:')
+        img2_path = f"{valid_img_path}{valid_img[i]}"
+        # print(f"considered picture {img1} compare with {valid_img[i]}")
+        # print('Results:')
         all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
-        print(f"all dl similarity are {all_similarity}")
+        # print(f"all dl similarity are {all_similarity}")
         ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
-        print(f"SSIM Score: {ssim_result_similarity:.4f}")
-
+        # print(f"SSIM Score: {ssim_result_similarity:.4f}")
         all_similarity["SSIM"]= ssim_result_similarity
-        # final_result = [dl_similarity, SIFT_result_similarity,ssim_result_similarity ]
         print(f"all similarity are {all_similarity}")
 
-        if all_similarity["VGG16"] >=0.25:
-            count_vote+=1
-        if all_similarity["EfficientNet_B0"]>=0.20:
-            count_vote+=1
-        if all_similarity["MobileNet"]>=0.20:
-            count_vote+=1
-        if all_similarity["SSIM"]>=0.20:
-            count_vote+=1
+        if all_similarity["SSIM"]>=0.70:
+            final_decision = f"similar to {valid_img[i]}"
+            flag_decision =1
+            return [final_decision,flag_decision]
+        elif all_similarity["MobileNet"]>=0.65:
+            final_decision = f"similar to {valid_img[i]}"
+            flag_decision =1
+            return [final_decision,flag_decision]
+        elif all_similarity["EfficientNet_B0"]>=0.70:
+            final_decision = f"similar to {valid_img[i]}"
+            flag_decision =1
+            return [final_decision,flag_decision]
 
-        print(f"Vote count: {count_vote}")
-
-          # Decision based on votes
-        if count_vote > 3:
-            print("Decision: Similar (Passed threshold)")
-            final_decision = "similar"
-
-    return final_decision
+        elif all_similarity["VGG16"] >=0.75:
+            final_decision = f"similar to {valid_img[i]}"
+            flag_decision =1
+            return [final_decision,flag_decision]
+        else:
+            return ["no similarity" , 0]
 ##########################################################################
-
-# Call function
-
-if __name__ == "__main__":
-    # Replace with your image paths
-    img1= 'bankmellat_pic3.jpeg'
-# img2 = 'bankghavamin_pic7.jpg'
-    # img1= 'BM_LOGO-01.png' 
-    # img2= 'banktejarat_pic8.png'
-    # img1= 'cat.jpg'
-    # img2= 'flower.jpg'
-    # img1 = 'mellal.png'
-    # img2 = 'bankmellat_pic6.jpeg'
-    # img2= 'bankmellat_pic5.png'
-
-    valid_img = ['BM_LOGO-00.png' , 'BM_LOGO-01.png' ,  'BM_LOGO-02.png' , 'BM_LOGO-03.png' , 'BM_LOGO-04.png', 'BM_LOGO-05.png']
-    img1_path = f"/home/mahdi/Phishing_Project/images/{img1}"
-    # img1_path = f"/home/mahdi/Phishing_Project/Valid_images/{img1}"
-    # show_image(img1_path, title="Original Image 1")
-
-    make_decision(img1_path, valid_img, transform)
