@@ -1,0 +1,18 @@
+# in order to use this function do this instruction:
+
+1 - create virtual environment
+
+python3 -m venv venv
+
+2 - activate environment
+
+source venv/bin/activate
+
+3 - install requirment
+
+pip install -r requirements.txt
+
+4 - see the test_similarity.py to undersatand how to use image_similarity.py
+
+python test_similarity.py
+

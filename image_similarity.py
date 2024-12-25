@@ -1,5 +1,4 @@
 # Import libraries
-import cv2
 import numpy as np
 from scipy.spatial.distance import cosine
 from skimage.metrics import structural_similarity as ssim
@@ -10,7 +9,6 @@ from torchvision.models import (
 from torchvision.models import (
      VGG16_Weights, EfficientNet_B0_Weights, MobileNet_V2_Weights
     )
-import matplotlib.pyplot as plt
 from PIL import Image
 
 #########################################################

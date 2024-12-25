@@ -1,5 +1,3 @@
-tensorflow
-matplotlib
 torch 
 torchvision 
 opencv-python-headless 
