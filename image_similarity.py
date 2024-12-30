@@ -102,7 +102,7 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
 
     return similarity_dict
 
-def make_decision (img1_path, valid_img, valid_img_path):
+def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
 
     # Call load_models to initialize both PyTorch models
     dl_models = load_models()
@@ -169,5 +169,5 @@ def make_decision (img1_path, valid_img, valid_img_path):
                         continue
 
 
-    return ["no similarity" , 0 ]
+    return ["There is no similarity" , 0 , "all models are checked" ]
 ##########################################################################

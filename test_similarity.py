@@ -1,4 +1,4 @@
-from image_similarity import make_decision
+from image_similarity import logo_similarity_make_decision as make_decision
 
 # Replace with your image paths
 # img1= 'bankmellat_pic3.jpeg'
@@ -17,4 +17,4 @@ img1_path = f"/home/mahdi/Phishing_Project/images/{img1}"
 valid_img_path = '/home/mahdi/Phishing_Project/Valid_images/'
 
 result , flag , model_name = make_decision(img1_path, valid_img, valid_img_path)
-print(f"the result is {result} with the flag {flag}. The model_name is {model_name}")
+print(f"result: {result} with the flag {flag}. model: {model_name}")
