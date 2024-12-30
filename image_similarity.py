@@ -20,7 +20,8 @@ def preprocess_image(image_path, target_size=(224, 224), remove_metadata=False):
         with Image.open(image_path) as img:
             # Optionally remove metadata (fix for libpng warning)
             if remove_metadata and img.format == "PNG":
-                img = img.convert("RGB")  # Remove PNG metadata by re-encoding
+                # Remove PNG metadata by re-encoding
+                img = img.convert("RGB")  
             # Convert to RGB format (handles grayscale and RGBA)
             img = img.convert("RGB")
             # Resize the image
@@ -30,8 +31,6 @@ def preprocess_image(image_path, target_size=(224, 224), remove_metadata=False):
             return img_array
     except Exception as e:
         print(f"Error processing image {image_path}: {e}")
-        raise
-
 
 ##########################################################
 # SSIM function
@@ -113,6 +112,7 @@ def make_decision (img1_path, valid_img, valid_img_path):
         
         img2_path = f"{valid_img_path}{valid_img[i]}"
         all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+        print(valid_img[i])
         # print(f"all dl similarity are {all_similarity}")
         ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
         # # print(f"SSIM Score: {ssim_result_similarity:.4f}")
@@ -132,7 +132,7 @@ def make_decision (img1_path, valid_img, valid_img_path):
             dl_models_selected = {"MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)}
             dl_similarity = compute_similarity(img1_path, img2_path,dl_models_selected, transform)
             dl_similarity_value = dl_similarity["MobileNet"]
-            if dl_similarity_value >0.65:
+            if dl_similarity_value >0.7:
                 final_decision = f"similar to {valid_img[i]}"
                 flag_decision =1
                 model_name = "MobileNet"
@@ -157,7 +157,7 @@ def make_decision (img1_path, valid_img, valid_img_path):
                     dl_models_selected = {"VGG16": vgg16(weights=VGG16_Weights.DEFAULT)}
                     dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
                     dl_similarity_value = dl_similarity["VGG16"]
-                    if dl_similarity_value >0.75:
+                    if dl_similarity_value >0.8:
                         final_decision = f"similar to {valid_img[i]}"
                         flag_decision =1
                         model_name = "VGG16"
@@ -166,5 +166,8 @@ def make_decision (img1_path, valid_img, valid_img_path):
                     else:
                         model_name = "VGG16"
                         print(f"{model_name} is checked")
-                        return ["no similarity" , 0 , "all models"]
+                        continue
+
+
+    return ["no similarity" , 0 ]
 ##########################################################################
