@@ -111,20 +111,20 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
     for i in range(0, len(valid_img)):
         
         img2_path = f"{valid_img_path}{valid_img[i]}"
-        all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+        # all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
         print(valid_img[i])
         # print(f"all dl similarity are {all_similarity}")
         ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
         # # print(f"SSIM Score: {ssim_result_similarity:.4f}")
-        all_similarity["SSIM"]= ssim_result_similarity
-        print(f"all similarity are {all_similarity}")
+        # all_similarity["SSIM"]= ssim_result_similarity
+        # print(f"all similarity are {all_similarity}")
 
         if ssim_result_similarity >=0.70:
             final_decision = f"similar to {valid_img[i]}"
             flag_decision =1
             model_name = "SSIM"
             print(f"{model_name} finds this image similar")
-            return [final_decision,flag_decision, model_name]
+            return [final_decision,flag_decision, model_name, ssim_result_similarity]
         
         else:
             model_name = "SSIM"
@@ -137,7 +137,7 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
                 flag_decision =1
                 model_name = "MobileNet"
                 print(f"{model_name} finds this image similar")
-                return [final_decision,flag_decision, model_name]
+                return [final_decision,flag_decision, model_name, dl_similarity_value]
 
             else:
                 model_name = "MobileNet"
@@ -150,7 +150,7 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
                     flag_decision =1
                     model_name = "EfficientNet_B0"
                     print(f"{model_name} finds this image similar")
-                    return [final_decision,flag_decision, model_name]
+                    return [final_decision,flag_decision, model_name,dl_similarity_value]
                 else:
                     model_name = "EfficientNet_B0"
                     print(f"{model_name} is checked")
@@ -162,12 +162,12 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
                         flag_decision =1
                         model_name = "VGG16"
                         print(f"{model_name} finds this image similar")
-                        return [final_decision,flag_decision, model_name]
+                        return [final_decision,flag_decision, model_name,dl_similarity_value]
                     else:
                         model_name = "VGG16"
                         print(f"{model_name} is checked")
                         continue
 
 
-    return ["There is no similarity" , 0 , "all models are checked" ]
+    return ["There is no similarity" , 0 , "all models are checked", "None" ]
 ##########################################################################
