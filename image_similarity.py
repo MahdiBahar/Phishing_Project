@@ -39,10 +39,17 @@ def preprocess_image(image_path, target_size=(224, 224), remove_metadata=False):
     try:
         # Open image using Pillow
         with Image.open(image_path) as img:
+            
+             #Check if the image has a palette and transparency
+            if img.mode == "P" and "transparency" in img.info:
+                # print("Converting palette-based image to RGBA.")
+                img = img.convert("RGBA")
             # Optionally remove metadata (fix for libpng warning)
-            if remove_metadata and img.format == "PNG":
+            elif remove_metadata and img.format == "PNG":
                 # Remove PNG metadata by re-encoding
                 img = img.convert("RGB")  
+            
+            
             # Convert to RGB format (handles grayscale and RGBA)
             img = img.convert("RGB")
             # Resize the image
@@ -80,9 +87,9 @@ def compute_ssim(image1_path, image2_path):
         img1 = preprocess_image(image1_path, target_size=(256, 256))
         img2 = preprocess_image(image2_path, target_size=(256, 256))
 
-        # if img1 is None or img2 is None:
-        #     print("Failed to preprocess one or both images.")
-        #     return -1.0
+        if img1 is None or img2 is None:
+            print("Failed to preprocess one or both images.")
+            return -1.0
 
         # Convert to grayscale
         img1_gray = np.mean(img1, axis=-1)  # Convert RGB to grayscale
@@ -99,7 +106,6 @@ def compute_ssim(image1_path, image2_path):
     #     print(f"Invalid image file: {image1_path}")
     except Exception as e:
         print(f"Unexpected error computing SSIM: {e}")
-        print("Failed to preprocess one or both images for calculating ssim.")
     return -1.0
 ##############################################################
 # Cosine similarity function
@@ -175,13 +181,13 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
         for i in range(0, len(valid_img)):
             
             img2_path = f"{valid_img_path}{valid_img[i]}"
-            # all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+            all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
             print(valid_img[i])
             # print(f"all dl similarity are {all_similarity}")
             ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
             # # print(f"SSIM Score: {ssim_result_similarity:.4f}")
-            # all_similarity["SSIM"]= ssim_result_similarity
-            # print(f"all similarity are {all_similarity}")
+            all_similarity["SSIM"]= ssim_result_similarity
+            print(f"all similarity are {all_similarity}")
             if ssim_result_similarity == -1:
                 return ["An error is occured" , 0 , "None" , "None"]
             else:

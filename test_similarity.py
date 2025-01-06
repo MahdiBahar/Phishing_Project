@@ -8,11 +8,12 @@ from image_similarity import logo_similarity_make_decision as make_decision
 # img1= 'cat.jpg'
 # img1= 'flower.jpg'
 # img1 = 'mellal.png'
-# img1 = 'bankmellat_pic6.jpeg'
+# img1 = 'bankmellat_pic3.jpeg'
 # img1= 'bankmellat_pic5.png'
 # img1 = '2073/2073_11.jpg'
-img1 = '5233/5233_1.jpg'
+# img1 = '5233/5233_1.jpg'
 # img1 = '2611/2611_4.svg'
+img1 = '2611/2611_17.jpg'
 # img1 = "Iran_province-V0.5.svg"
 # img1= "Bank_Mellat_Logo.svg"
 # img1 = "bin/241_10.bin"
