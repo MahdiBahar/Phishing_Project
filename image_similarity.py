@@ -10,8 +10,22 @@ from torchvision.models import (
      VGG16_Weights, EfficientNet_B0_Weights, MobileNet_V2_Weights
     )
 from PIL import Image , UnidentifiedImageError
+import cairosvg
 
 #########################################################
+# convert svg to png
+def check_and_convert_svgtopng(image_path):
+    if image_path.lower().endswith(".svg"):
+        print(f"Converting SVG to PNG: {image_path}")
+        # Convert SVG to PNG in memory
+        png_path = image_path.replace(".svg", ".png")
+        cairosvg.svg2png(url=image_path, write_to=png_path)
+        image_path = png_path  # Update path to use the converted PNG
+    else:
+        pass
+
+    return image_path    
+
 # Preprocessing images
 def preprocess_image(image_path, target_size=(224, 224), remove_metadata=False):
 
@@ -41,23 +55,41 @@ def preprocess_image(image_path, target_size=(224, 224), remove_metadata=False):
 # SSIM function
 def compute_ssim(image1_path, image2_path):
     try:
-        # Open images in grayscale
-        img1 = Image.open(image1_path).convert("L")
-        img2 = Image.open(image2_path).convert("L")
+        # # Open images in grayscale
+        # img1 = Image.open(image1_path).convert("L")
+        # img2 = Image.open(image2_path).convert("L")
         
-        # Resize with updated resampling method
-        img1 = img1.resize((256, 256), Image.Resampling.LANCZOS)
-        img2 = img2.resize((256, 256), Image.Resampling.LANCZOS)
+        # # Resize with updated resampling method
+        # img1 = img1.resize((256, 256), Image.Resampling.LANCZOS)
+        # img2 = img2.resize((256, 256), Image.Resampling.LANCZOS)
         
-        img1_np = np.array(img1)
-        img2_np = np.array(img2)
+        # img1_np = np.array(img1)
+        # img2_np = np.array(img2)
 
-        similarity, _ = ssim(img1_np, img2_np, full=True)
-        return similarity
-    except FileNotFoundError:
-        print(f"File not found: {image1_path} or {image2_path}")
-    except UnidentifiedImageError:
-        print(f"Invalid image file: {image1_path}")
+        # similarity, _ = ssim(img1_np, img2_np, full=True)
+        # return similarity
+
+                # Preprocess both images (handles .svg to .png conversion)
+        img1 = preprocess_image(image1_path, target_size=(256, 256))
+        img2 = preprocess_image(image2_path, target_size=(256, 256))
+
+        if img1 is None or img2 is None:
+            print("Failed to preprocess one or both images.")
+            return 0.0
+
+        # Convert to grayscale
+        img1_gray = np.mean(img1, axis=-1)  # Convert RGB to grayscale
+        img2_gray = np.mean(img2, axis=-1)
+
+        # Compute SSIM
+        similarity, _ = ssim(img1_gray, img2_gray, full=True, data_range=1.0)
+        return round(similarity, 4)
+
+
+    # except FileNotFoundError:
+    #     print(f"File not found: {image1_path} or {image2_path}")
+    # except UnidentifiedImageError:
+    #     print(f"Invalid image file: {image1_path}")
     except Exception as e:
         print(f"Unexpected error computing SSIM: {e}")
     return -1.0
@@ -128,6 +160,7 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
     dl_models = load_models()
     final_decision = "no similarity"
     flag_decision = 0 
+    img1_path = check_and_convert_svgtopng(img1_path)
     for i in range(0, len(valid_img)):
         
         img2_path = f"{valid_img_path}{valid_img[i]}"
