@@ -15,16 +15,23 @@ import cairosvg
 #########################################################
 # convert svg to png
 def check_and_convert_svgtopng(image_path):
-    if image_path.lower().endswith(".svg"):
-        print(f"Converting SVG to PNG: {image_path}")
-        # Convert SVG to PNG in memory
-        png_path = image_path.replace(".svg", ".png")
-        cairosvg.svg2png(url=image_path, write_to=png_path)
-        image_path = png_path  # Update path to use the converted PNG
-    else:
-        pass
+    try:
+        if image_path.lower().endswith(".svg"):
+            print(f"Converting SVG to PNG: {image_path}")
+            # Convert SVG to PNG in memory
+            png_path = image_path.replace(".svg", ".png")
+            cairosvg.svg2png(url=image_path, write_to=png_path)
+            image_path = png_path  # Update path to use the converted PNG
+        else:
+            pass
 
-    return image_path    
+        return image_path  
+    
+    except UnidentifiedImageError:
+        print(f"Invalid image file: {image_path}")
+    except Exception as e:
+        print(f"Unexpected error processing {image_path}: {e}")
+    return None
 
 # Preprocessing images
 def preprocess_image(image_path, target_size=(224, 224), remove_metadata=False):
@@ -73,9 +80,9 @@ def compute_ssim(image1_path, image2_path):
         img1 = preprocess_image(image1_path, target_size=(256, 256))
         img2 = preprocess_image(image2_path, target_size=(256, 256))
 
-        if img1 is None or img2 is None:
-            print("Failed to preprocess one or both images.")
-            return 0.0
+        # if img1 is None or img2 is None:
+        #     print("Failed to preprocess one or both images.")
+        #     return -1.0
 
         # Convert to grayscale
         img1_gray = np.mean(img1, axis=-1)  # Convert RGB to grayscale
@@ -92,6 +99,7 @@ def compute_ssim(image1_path, image2_path):
     #     print(f"Invalid image file: {image1_path}")
     except Exception as e:
         print(f"Unexpected error computing SSIM: {e}")
+        print("Failed to preprocess one or both images for calculating ssim.")
     return -1.0
 ##############################################################
 # Cosine similarity function
@@ -161,71 +169,75 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
     final_decision = "no similarity"
     flag_decision = 0 
     img1_path = check_and_convert_svgtopng(img1_path)
-    for i in range(0, len(valid_img)):
-        
-        img2_path = f"{valid_img_path}{valid_img[i]}"
-        # all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
-        print(valid_img[i])
-        # print(f"all dl similarity are {all_similarity}")
-        ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
-        # # print(f"SSIM Score: {ssim_result_similarity:.4f}")
-        # all_similarity["SSIM"]= ssim_result_similarity
-        # print(f"all similarity are {all_similarity}")
-        if ssim_result_similarity == -1:
-            return ["An error is occured" , 0 , "None" , "None"]
-        else:
-            if ssim_result_similarity >=0.70:
-                final_decision = f"similar to {valid_img[i]}"
-                flag_decision =1
-                model_name = "SSIM"
-                print(f"{model_name} finds this image similar")
-                return [final_decision,flag_decision, model_name, ssim_result_similarity]
+    if img1_path is None:
+        return ["An error is occured" , 0 , "None" , "None"]
+    else: 
+        for i in range(0, len(valid_img)):
             
+            img2_path = f"{valid_img_path}{valid_img[i]}"
+            # all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+            print(valid_img[i])
+            # print(f"all dl similarity are {all_similarity}")
+            ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
+            # # print(f"SSIM Score: {ssim_result_similarity:.4f}")
+            # all_similarity["SSIM"]= ssim_result_similarity
+            # print(f"all similarity are {all_similarity}")
+            if ssim_result_similarity == -1:
+                return ["An error is occured" , 0 , "None" , "None"]
             else:
-                model_name = "SSIM"
-                print(f"{model_name} is checked")
-                dl_models_selected = {"MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)}
-                dl_similarity = compute_similarity(img1_path, img2_path,dl_models_selected, transform)
-                if "error" in dl_similarity:
-                    # print(f"Skipping invalid comparison for {img1_path} and {img2_path}")
-                    return ["An error is occured" , 0 , "None" , "None"]
+                if ssim_result_similarity >=0.70:
+                    final_decision = f"similar to {valid_img[i]}"
+                    flag_decision =1
+                    model_name = "SSIM"
+                    print(f"{model_name} finds this image similar")
+                    return [final_decision,flag_decision, model_name, ssim_result_similarity]
+                
                 else:
-                    dl_similarity_value = dl_similarity["MobileNet"]
-                    if dl_similarity_value >0.7:
-                        final_decision = f"similar to {valid_img[i]}"
-                        flag_decision =1
-                        model_name = "MobileNet"
-                        print(f"{model_name} finds this image similar")
-                        return [final_decision,flag_decision, model_name, dl_similarity_value]
 
+                    dl_models_selected = {"MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)}
+                    dl_similarity = compute_similarity(img1_path, img2_path,dl_models_selected, transform)
+                    if "error" in dl_similarity:
+                        # print(f"Skipping invalid comparison for {img1_path} and {img2_path}")
+                        return ["An error is occured" , 0 , "None" , "None"]
                     else:
-                        model_name = "MobileNet"
+                        model_name = "SSIM"
                         print(f"{model_name} is checked")
-                        dl_models_selected = {"EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)}
-                        dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
-                        dl_similarity_value = dl_similarity["EfficientNet_B0"]
+                        dl_similarity_value = dl_similarity["MobileNet"]
                         if dl_similarity_value >0.7:
                             final_decision = f"similar to {valid_img[i]}"
                             flag_decision =1
-                            model_name = "EfficientNet_B0"
+                            model_name = "MobileNet"
                             print(f"{model_name} finds this image similar")
-                            return [final_decision,flag_decision, model_name,dl_similarity_value]
+                            return [final_decision,flag_decision, model_name, dl_similarity_value]
+
                         else:
-                            model_name = "EfficientNet_B0"
+                            model_name = "MobileNet"
                             print(f"{model_name} is checked")
-                            dl_models_selected = {"VGG16": vgg16(weights=VGG16_Weights.DEFAULT)}
+                            dl_models_selected = {"EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)}
                             dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
-                            dl_similarity_value = dl_similarity["VGG16"]
-                            if dl_similarity_value >0.8:
+                            dl_similarity_value = dl_similarity["EfficientNet_B0"]
+                            if dl_similarity_value >0.7:
                                 final_decision = f"similar to {valid_img[i]}"
                                 flag_decision =1
-                                model_name = "VGG16"
+                                model_name = "EfficientNet_B0"
                                 print(f"{model_name} finds this image similar")
                                 return [final_decision,flag_decision, model_name,dl_similarity_value]
                             else:
-                                model_name = "VGG16"
+                                model_name = "EfficientNet_B0"
                                 print(f"{model_name} is checked")
-                                continue
+                                dl_models_selected = {"VGG16": vgg16(weights=VGG16_Weights.DEFAULT)}
+                                dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
+                                dl_similarity_value = dl_similarity["VGG16"]
+                                if dl_similarity_value >0.8:
+                                    final_decision = f"similar to {valid_img[i]}"
+                                    flag_decision =1
+                                    model_name = "VGG16"
+                                    print(f"{model_name} finds this image similar")
+                                    return [final_decision,flag_decision, model_name,dl_similarity_value]
+                                else:
+                                    model_name = "VGG16"
+                                    print(f"{model_name} is checked")
+                                    continue
 
 
     return ["There is no similarity" , 0 , "all models are checked", "None" ]
