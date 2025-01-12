@@ -11,6 +11,7 @@ from torchvision.models import (
     )
 from PIL import Image , UnidentifiedImageError
 import cairosvg
+# import logging 
 
 #########################################################
 # convert svg to png
@@ -191,7 +192,7 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
             if ssim_result_similarity == -1:
                 return ["An error is occured" , 0 , "None" , "None"]
             else:
-                if ssim_result_similarity >=0.70:
+                if ssim_result_similarity >0.8:
                     final_decision = f"similar to {valid_img[i]}"
                     flag_decision =1
                     model_name = "SSIM"
@@ -200,7 +201,7 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
                 
                 else:
 
-                    dl_models_selected = {"MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)}
+                    dl_models_selected = {"EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)}
                     dl_similarity = compute_similarity(img1_path, img2_path,dl_models_selected, transform)
                     if "error" in dl_similarity:
                         # print(f"Skipping invalid comparison for {img1_path} and {img2_path}")
@@ -208,33 +209,34 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
                     else:
                         model_name = "SSIM"
                         print(f"{model_name} is checked")
-                        dl_similarity_value = dl_similarity["MobileNet"]
-                        if dl_similarity_value >0.7:
+                        dl_similarity_value = dl_similarity["EfficientNet_B0"]
+                        # if dl_similarity_value >0.6 and (ssim_result_similarity >=0.29 or all_similarity["MobileNet"] > 0.65):
+                        if dl_similarity_value >0.71:
                             final_decision = f"similar to {valid_img[i]}"
                             flag_decision =1
-                            model_name = "MobileNet"
+                            model_name = "EfficientNet_B0"
                             print(f"{model_name} finds this image similar")
                             return [final_decision,flag_decision, model_name, dl_similarity_value]
 
                         else:
-                            model_name = "MobileNet"
+                            model_name = "EfficientNet_B0"
                             print(f"{model_name} is checked")
-                            dl_models_selected = {"EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)}
+                            dl_models_selected = {"MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)}
                             dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
-                            dl_similarity_value = dl_similarity["EfficientNet_B0"]
-                            if dl_similarity_value >0.7:
+                            dl_similarity_value = dl_similarity["MobileNet"]
+                            if dl_similarity_value >0.76:
                                 final_decision = f"similar to {valid_img[i]}"
                                 flag_decision =1
-                                model_name = "EfficientNet_B0"
+                                model_name = "MobileNet"
                                 print(f"{model_name} finds this image similar")
                                 return [final_decision,flag_decision, model_name,dl_similarity_value]
                             else:
-                                model_name = "EfficientNet_B0"
+                                model_name = "MobileNet"
                                 print(f"{model_name} is checked")
                                 dl_models_selected = {"VGG16": vgg16(weights=VGG16_Weights.DEFAULT)}
                                 dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
                                 dl_similarity_value = dl_similarity["VGG16"]
-                                if dl_similarity_value >0.8:
+                                if dl_similarity_value >0.9:
                                     final_decision = f"similar to {valid_img[i]}"
                                     flag_decision =1
                                     model_name = "VGG16"
