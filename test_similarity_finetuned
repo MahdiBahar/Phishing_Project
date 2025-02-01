@@ -35,5 +35,5 @@ img1_path = "/home/mahdi/logo_detection_model/flag_images/flagged_images_thr0.8_
 
 valid_img_path = '/home/mahdi/Phishing_Project/Valid_images/'
 
-result  = make_decision(img1_path, valid_img, valid_img_path)
+result  = make_decision(img1_path, valid_img, valid_img_path, 'Average')
 print(f"result: {result} ")

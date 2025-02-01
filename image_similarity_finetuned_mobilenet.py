@@ -172,7 +172,7 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
 
 
 
-def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
+def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method):
 
     # Call load_models to initialize both PyTorch models
     dl_models = load_models()
@@ -183,6 +183,7 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
         return {'result':'An error occured'}
     else: 
         # Prepare a dictionary to accumulate results for each model across all valid images
+        all_similarity_result = {}
         all_similarity = {
         'VGG16': [],
         'EfficientNet_B0': [],
@@ -209,6 +210,20 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
             # print(i)
             # print(f"all similarity are {{'VGG16': {dl_similarity['VGG16']}, 'EfficientNet_B0': {dl_similarity['EfficientNet_B0']}, 'MobileNet': {dl_similarity['MobileNet']}, 'SSIM': {ssim_score}}}")
 
-
-    return all_similarity
+    if method == "Max":
+        # all_similarity_result['VGG16'] = all_similarity['VGG16'].max()
+        all_similarity_result['EfficientNet_B0'] = max(all_similarity['EfficientNet_B0'])       
+        all_similarity_result['MobileNet'] = max(all_similarity['MobileNet'])
+        all_similarity_result['SSIM'] = max(all_similarity['SSIM'])
+    elif method == "Min":
+        # all_similarity_result['VGG16'] = min(all_similarity['VGG16'])
+        all_similarity_result['EfficientNet_B0'] = min(all_similarity['EfficientNet_B0'])       
+        all_similarity_result['MobileNet'] = min(all_similarity['MobileNet'])
+        all_similarity_result['SSIM'] = min(all_similarity['SSIM'])
+    elif method == "Average":
+        # all_similarity_result['VGG16'] = mean(all_similarity['VGG16'])
+        all_similarity_result['EfficientNet_B0'] = round(sum(all_similarity['EfficientNet_B0'])/len(all_similarity['EfficientNet_B0']) , 4)       
+        all_similarity_result['MobileNet'] = round(sum(all_similarity['MobileNet'])/len(all_similarity['MobileNet']) , 4)
+        all_similarity_result['SSIM'] = round(sum(all_similarity['SSIM'])/len(all_similarity['SSIM']) , 4)
+    return all_similarity_result
 ##########################################################################
