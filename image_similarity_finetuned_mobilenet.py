@@ -233,17 +233,20 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method 
         # all_similarity_result['VGG16'] = all_similarity['VGG16'].max()
         all_similarity_result['EfficientNet_B0'] = max(all_similarity['EfficientNet_B0'])       
         all_similarity_result['MobileNet'] = max(all_similarity['MobileNet'])
-        all_similarity_result['SSIM'] = max(all_similarity['SSIM'])
+        # all_similarity_result['SSIM'] = max(all_similarity['SSIM'])
+        all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
     elif method == "Min":
         # all_similarity_result['VGG16'] = min(all_similarity['VGG16'])
         all_similarity_result['EfficientNet_B0'] = min(all_similarity['EfficientNet_B0'])       
         all_similarity_result['MobileNet'] = min(all_similarity['MobileNet'])
-        all_similarity_result['SSIM'] = min(all_similarity['SSIM'])
+        # all_similarity_result['SSIM'] = min(all_similarity['SSIM'])
+        all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
     elif method == "Average":
         # all_similarity_result['VGG16'] = mean(all_similarity['VGG16'])
         all_similarity_result['EfficientNet_B0'] = round(sum(all_similarity['EfficientNet_B0'])/len(all_similarity['EfficientNet_B0']) , 4)       
         all_similarity_result['MobileNet'] = round(sum(all_similarity['MobileNet'])/len(all_similarity['MobileNet']) , 4)
-        all_similarity_result['SSIM'] = round(sum(all_similarity['SSIM'])/len(all_similarity['SSIM']) , 4)
+        # all_similarity_result['SSIM'] = round(sum(all_similarity['SSIM'])/len(all_similarity['SSIM']) , 4)
+        all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
     return all_similarity_result
 ##########################################################################
 

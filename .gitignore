@@ -5,7 +5,7 @@ Logo_dataset/
 test_images/
 trained_model/
 orginal_datasets/
-
+output_result_csv/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
