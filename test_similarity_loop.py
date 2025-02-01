@@ -1,5 +1,5 @@
 import os
-from image_similarity import logo_similarity_make_decision as make_decision
+from image_similarity_4 import logo_similarity_make_decision as make_decision
 from shutil import copyfile
 
 def process_images(input_folder, valid_img, valid_img_path, output_folder, output_folder_not_detected):
@@ -45,10 +45,10 @@ def process_images(input_folder, valid_img, valid_img_path, output_folder, outpu
                 print(f"Error processing {file_name}: {e}")
 
 # Define paths
-input_folder = "/home/mahdi/Phishing_Project/images/test_2"  # Folder containing input images
+input_folder = "/home/mahdi/Phishing_Project/images/4404"  # Folder containing input images
 valid_img = ['BM_LOGO-00.png', 'BM_LOGO-01.png', 'BM_LOGO-02.png', 'BM_LOGO-03.png', 'BM_LOGO-04.png', 'BM_LOGO-05.png']
 valid_img_path = '/home/mahdi/Phishing_Project/Valid_images/'  # Folder of valid images
-output_folder = "/home/mahdi/Phishing_Project/images/output_images"  # Save matched images here
-output_folder_not_detected = "/home/mahdi/Phishing_Project/images/output_images_not_detected"  # Save dismatched images here
+output_folder = "/home/mahdi/Phishing_Project/images/output_images2"  # Save matched images here
+output_folder_not_detected = "/home/mahdi/Phishing_Project/images/output_images_not_detected2"  # Save dismatched images here
 # Process images
 process_images(input_folder, valid_img, valid_img_path, output_folder, output_folder_not_detected)

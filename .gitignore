@@ -1,5 +1,11 @@
 # Local folder
 images/
+detected_logos/
+Logo_dataset/
+test_images/
+trained_model/
+orginal_datasets/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
