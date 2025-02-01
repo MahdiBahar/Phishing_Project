@@ -176,7 +176,7 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
 
 
 
-def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method , model):
+def logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , model):
 
     # Call load_models to initialize both PyTorch models
     dl_models = load_models()
@@ -249,6 +249,27 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method 
         all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
     return all_similarity_result
 ##########################################################################
+
+
+def logo_similarity_make_decision(all_similarity_result):
+
+    # all_similarity_result = logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , model)
+    similarity_FT = all_similarity_result["MobileNet_FT"]
+    avg_similarity = all_similarity_result["avg_not_trained"]
+
+
+    if similarity_FT >= 0.8 and avg_similarity >= 0.5:
+        return "Sure", 1
+    elif similarity_FT < 0.8 and similarity_FT >= 0.6 and avg_similarity >= 0.6:
+        return "Maybe", 0.75
+    elif similarity_FT < 0.6 and similarity_FT >= 0.5 and avg_similarity >= 0.5:
+        return "Maybe", 0.5
+    elif similarity_FT <= 0.1:
+        return "Never ever", 0.0
+    else:
+        return "Never", 0.25
+
+
 
 
 # def logo_similarity_make_decision (img_path, model):
