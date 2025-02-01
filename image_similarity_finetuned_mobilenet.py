@@ -261,7 +261,7 @@ def logo_similarity_make_decision(all_similarity_result):
     if similarity_FT >= 0.8 and avg_similarity >= 0.5:
         return "Sure", 1
     elif similarity_FT < 0.8 and similarity_FT >= 0.6 and avg_similarity >= 0.6:
-        return "Maybe", 0.75
+        return "Maybe_positive", 0.75
     elif similarity_FT < 0.6 and similarity_FT >= 0.5 and avg_similarity >= 0.5:
         return "Maybe", 0.5
     elif similarity_FT <= 0.1:
