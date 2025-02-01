@@ -1,4 +1,9 @@
 from image_similarity_finetuned_mobilenet import logo_similarity_make_decision as make_decision
+import tensorflow as tf
+
+
+
+model = tf.keras.models.load_model("/home/mahdi/logo_detection_model/data-augmentation_v5/trained_model/mobilenet_finetuned_augv5_modify_datasetv2_rofl_v20.h5")
 
 # Replace with your image paths
 # img1= 'bankmellat_pic3.jpeg'
@@ -35,5 +40,5 @@ img1_path = "/home/mahdi/logo_detection_model/flag_images/flagged_images_thr0.8_
 
 valid_img_path = '/home/mahdi/Phishing_Project/Valid_images/'
 
-result  = make_decision(img1_path, valid_img, valid_img_path, 'Average')
+result  = make_decision(img1_path, valid_img, valid_img_path, 'Average' , model)
 print(f"result: {result} ")

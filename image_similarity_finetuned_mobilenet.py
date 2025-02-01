@@ -13,8 +13,12 @@ from torchvision.models import (
 from PIL import Image , UnidentifiedImageError
 import cairosvg
 # import logging 
-
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 #########################################################
+
+
+
 # convert svg to png
 def check_and_convert_svgtopng(image_path):
     try:
@@ -172,17 +176,16 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
 
 
 
-def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method):
+def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method , model):
 
     # Call load_models to initialize both PyTorch models
     dl_models = load_models()
-    final_decision = "no similarity"
-    flag_decision = 0 
+    # final_decision = "no similarity"
+    # flag_decision = 0 
     img1_path = check_and_convert_svgtopng(img1_path)
     if img1_path is None:
         return {'result':'An error occured'}
     else: 
-        # Prepare a dictionary to accumulate results for each model across all valid images
         all_similarity_result = {}
         all_similarity = {
         'VGG16': [],
@@ -190,6 +193,22 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method)
         'MobileNet': [],
         'SSIM': []
         }
+        # img = preprocess_image(img_path, target_size=(224, 224), remove_metadata=True)
+        img = load_img(img1_path, target_size=(224, 224))
+        img_array = img_to_array(img) / 255.0  
+        img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
+        if img is None:
+            # print(f"Skipping comparison due to invalid images: {img1_path}, {img2_path}")
+            print(f"Skipping comparison due to invalid images")
+            return {"result" : "Invalid image(s)"}
+            # img_array = tf.expand_dims(img, axis=0)  # Add batch dimension
+            # Predict
+        prediction_MobileNet_FT = model.predict(img_array)
+        all_similarity_result["MobileNet_FT"] = round(prediction_MobileNet_FT[0][0].tolist(),4)
+        
+        
+        # Prepare a dictionary to accumulate results for each model across all valid images
+        
         for i in valid_img:
             
             img2_path = f"{valid_img_path}{i}"
@@ -227,3 +246,33 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path, method)
         all_similarity_result['SSIM'] = round(sum(all_similarity['SSIM'])/len(all_similarity['SSIM']) , 4)
     return all_similarity_result
 ##########################################################################
+
+
+# def logo_similarity_make_decision (img_path, model):
+
+#     # Preprocess both images (handle all formats, including PNG fixes)
+
+#     try: 
+#         img_path = check_and_convert_svgtopng(img_path)
+#         if img_path is None:
+#             return ["An error is occured" , 0 , "None"]
+#         else: 
+#             # img = preprocess_image(img_path, target_size=(224, 224), remove_metadata=True)
+#             img = load_img(img_path, target_size=(224, 224))
+#             img_array = img_to_array(img) / 255.0  
+#             img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
+#             #check the image is invalid or not
+#             if img is None:
+#                 # print(f"Skipping comparison due to invalid images: {img1_path}, {img2_path}")
+#                 print(f"Skipping comparison due to invalid images")
+#                 return "Invalid image(s)", 0 , "None"
+#             # img_array = tf.expand_dims(img, axis=0)  # Add batch dimension
+#             # Predict
+#             prediction = model.predict(img_array)
+#             if prediction[0][0] > 0.8:
+#                 return "Bank Mellat Logo", 1, f'{prediction[0][0]:.4f}'
+#             else:
+#                 return "Not Logo", 0 , f'{prediction[0][0]:.4f}'
+#     except Exception as e:
+#         print (e)
+#         return "Invalid image(s)", 0 , "None"
