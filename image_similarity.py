@@ -4,7 +4,6 @@ from scipy.spatial.distance import cosine
 from skimage.metrics import structural_similarity as ssim
 import torch
 import torchvision.transforms as transforms
-from torchvision import models
 from torchvision.models import (
     vgg16, efficientnet_b0, mobilenet_v2)
 from torchvision.models import (
@@ -126,58 +125,13 @@ transform = transforms.Compose([
 ############################################################
 # Load pretrained models
 def load_models():
-    """
-    Load models including the fine-tuned EfficientNet model.
-    """
-    # Path to the fine-tuned model
-    model_path = "/home/mahdi/Phishing_Project/trained_model/efficientnet_finetuned_1.pth"
-
-    # Initialize EfficientNet model
-    efficientnet_finetuned = models.efficientnet_b0(weights=None)
-    num_classes = 2  # Replace with the number of classes in your fine-tuned model
-    efficientnet_finetuned.classifier[1] = torch.nn.Linear(
-        efficientnet_finetuned.classifier[1].in_features, num_classes
-    )
-
-    # Load fine-tuned weights
-    try:
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
-        efficientnet_finetuned.load_state_dict(state_dict, strict=True)  # Ensure strict=True to match exact layers
-    except RuntimeError as e:
-        print(f"Error loading model state_dict: {e}")
-        print("Attempting to load with strict=False...")
-        efficientnet_finetuned.load_state_dict(state_dict, strict=False)
-
-    efficientnet_finetuned.eval()  # Set to evaluation mode
-
-    # Other models
+    # PyTorch models
     pytorch_models = {
         "VGG16": vgg16(weights=VGG16_Weights.DEFAULT),
-        "EfficientNet_B0_FineTuned": efficientnet_finetuned,
-        # "EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT),
-        "MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)
+        "EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT),
+        "MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT),
     }
     return pytorch_models
-
-
-
-# def load_models():
-
-#     # Load fine-tuned EfficientNet model
-#     model_path = "/home/mahdi/Phishing_Project/trained_model/efficientnet_finetuned.pth"
-#     efficientnet_finetuned = models.efficientnet_b0(weights=None)  # Initialize without pretrained weights
-#     efficientnet_finetuned.classifier[1] = torch.nn.Identity()  # For feature extraction
-#     efficientnet_finetuned.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
-#     efficientnet_finetuned.eval()  # Set to evaluation mode
-
-#     # PyTorch models
-#     pytorch_models = {
-#         "VGG16": vgg16(weights=VGG16_Weights.DEFAULT),
-#         # "EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT),
-#         "EfficientNet_B0_FineTuned": efficientnet_finetuned,  # Use the fine-tuned model
-#         "MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT),
-#     }
-#     return pytorch_models
 
 
 #  Extract features and compute cosine similarity
@@ -228,17 +182,17 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
         for i in range(0, len(valid_img)):
             
             img2_path = f"{valid_img_path}{valid_img[i]}"
-            # all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+            all_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
             print(valid_img[i])
             # print(f"all dl similarity are {all_similarity}")
             ssim_result_similarity = round(float(compute_ssim(img1_path, img2_path)),4)
             # # print(f"SSIM Score: {ssim_result_similarity:.4f}")
-            # all_similarity["SSIM"]= ssim_result_similarity
-            # print(f"all similarity are {all_similarity}")
+            all_similarity["SSIM"]= ssim_result_similarity
+            print(f"all similarity are {all_similarity}")
             if ssim_result_similarity == -1:
                 return ["An error is occured" , 0 , "None" , "None"]
             else:
-                if ssim_result_similarity >0.8:
+                if ssim_result_similarity >=0.80:
                     final_decision = f"similar to {valid_img[i]}"
                     flag_decision =1
                     model_name = "SSIM"
@@ -247,24 +201,24 @@ def logo_similarity_make_decision (img1_path, valid_img, valid_img_path):
                 
                 else:
 
-                    dl_models_selected = {"EfficientNet_FineTuned": dl_models["EfficientNet_B0_FineTuned"]}
-                    dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
+                    dl_models_selected = {"EfficientNet_B0": efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)}
+                    dl_similarity = compute_similarity(img1_path, img2_path,dl_models_selected, transform)
                     if "error" in dl_similarity:
-                        return ["An error occurred", 0, "None", "None"]
-
+                        # print(f"Skipping invalid comparison for {img1_path} and {img2_path}")
+                        return ["An error is occured" , 0 , "None" , "None"]
                     else:
                         model_name = "SSIM"
                         print(f"{model_name} is checked")
-                        dl_similarity_value = dl_similarity["EfficientNet_FineTuned"]
-                        if dl_similarity_value > 0.99:  # Adjust threshold as needed
+                        dl_similarity_value = dl_similarity["EfficientNet_B0"]
+                        if dl_similarity_value >0.71:
                             final_decision = f"similar to {valid_img[i]}"
-                            flag_decision = 1
-                            model_name = "EfficientNet_FineTuned"
+                            flag_decision =1
+                            model_name = "EfficientNet_B0"
                             print(f"{model_name} finds this image similar")
-                            return [final_decision, flag_decision, model_name, dl_similarity_value]
+                            return [final_decision,flag_decision, model_name, dl_similarity_value]
 
                         else:
-                            model_name = "EfficientNet_FineTuned_B0"
+                            model_name = "EfficientNet_B0"
                             print(f"{model_name} is checked")
                             dl_models_selected = {"MobileNet": mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)}
                             dl_similarity = compute_similarity(img1_path, img2_path, dl_models_selected, transform)
