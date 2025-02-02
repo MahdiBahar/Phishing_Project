@@ -25,9 +25,10 @@ model = tf.keras.models.load_model("/home/mahdi/logo_detection_model/data-augmen
 
 
 # 2) Configure your paths
-folder_path = "/home/mahdi/Datasets/Flag_2/0"
+# folder_path = "/home/mahdi/Datasets/4"
+folder_path = "/home/mahdi/Phishing_Project/detected_logos/1500_detected/Sure"
 valid_img_path = "/home/mahdi/Phishing_Project/Valid_images/"
-output_csv_path = "/home/mahdi/Phishing_Project/output_result_csv/similarity_results_Flag2_0_decision.csv"
+output_csv_path = "/home/mahdi/Phishing_Project/output_result_csv/similarity_results_sure1500_decision.csv"
 
 # 3) The list of valid images (as before)
 valid_img = [

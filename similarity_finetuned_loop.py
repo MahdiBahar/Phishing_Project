@@ -22,7 +22,8 @@ def process_images_in_folders(base_dir, model):
     """
 
     # Where to save the images according to their decision
-    save_dir = "/home/mahdi/Phishing_Project/detected_logos"
+    save_dir = "/home/mahdi/Phishing_Project/detected_logos/1500_detected"
+    # save_dir = "/home/mahdi/Phishing_Project/detected_logos/4"
     os.makedirs(save_dir, exist_ok=True)
 
     # We'll store each image's results (folder name, file name, decision, etc.) in this list
@@ -47,7 +48,7 @@ def process_images_in_folders(base_dir, model):
                 print(f"Skipping non-image file: {file_name}")
                 continue
 
-            print(f"Processing file: {file_name}")
+            # print(f"Processing file: {file_name}")
 
             # 1) First get the dictionary with similarity scores
             similarity_result = calculation(file_path, valid_img, valid_img_path, 'Max', model)
@@ -55,11 +56,11 @@ def process_images_in_folders(base_dir, model):
             # 2) Then get (comment, decision) from that dictionary
             comment, decision = make_decision(similarity_result)
 
-            # If the function signals an error or invalid input,
-            # you can skip or handle differently. For example:
-            if similarity_result is None:
-                print(f"Invalid image or error in calculation: {file_name}")
-                continue
+            # # If the function signals an error or invalid input,
+            # # you can skip or handle differently. For example:
+            # if similarity_result is None:
+            #     print(f"Invalid image or error in calculation: {file_name}")
+            #     continue
 
             # Append to our results list (customize as needed)
             results.append({
@@ -84,8 +85,8 @@ def process_images_in_folders(base_dir, model):
 # Example usage
 
 # 1) Configure your base directory of images
-base_dir = "/home/mahdi/Datasets/50/"  # put your top-level folder here
-
+base_dir = "/home/mahdi/Datasets/Logo_Data_1500/"  # put your top-level folder here
+# base_dir = "/home/mahdi/Datasets/4/"
 # 2) Provide the references (valid_img, valid_img_path) used by your calculation function
 valid_img = [
     "BM_LOGO-00.png",
@@ -109,7 +110,7 @@ results = process_images_in_folders(base_dir, model)
 #     print("No results were generated. Check if images are valid and present in the folder.")
 
 # 5) Optionally save results to CSV
-output_csv_path = "/home/mahdi/Phishing_Project/output_result_csv/decision_results_50.csv"
+output_csv_path = "/home/mahdi/Phishing_Project/output_result_csv/decision_results_1500.csv"
 if results:
     # Decide which headers you want to store
     fieldnames = ["folder", "file_name", "comment", "decision"]

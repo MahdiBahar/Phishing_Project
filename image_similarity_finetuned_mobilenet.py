@@ -178,81 +178,99 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
 
 def logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , model):
 
-    # Call load_models to initialize both PyTorch models
-    dl_models = load_models()
-    # final_decision = "no similarity"
-    # flag_decision = 0 
-    img1_path = check_and_convert_svgtopng(img1_path)
-    if img1_path is None:
-        return {'result':'An error occured'}
-    else: 
-        all_similarity_result = {}
-        all_similarity = {
-        'VGG16': [],
-        'EfficientNet_B0': [],
-        'MobileNet': [],
-        'SSIM': []
-        }
-        # img = preprocess_image(img_path, target_size=(224, 224), remove_metadata=True)
-        img = load_img(img1_path, target_size=(224, 224))
-        img_array = img_to_array(img) / 255.0  
-        img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
-        if img is None:
-            # print(f"Skipping comparison due to invalid images: {img1_path}, {img2_path}")
-            print(f"Skipping comparison due to invalid images")
-            return {"result" : "Invalid image(s)"}
-            # img_array = tf.expand_dims(img, axis=0)  # Add batch dimension
-            # Predict
-        prediction_MobileNet_FT = model.predict(img_array)
-        all_similarity_result["MobileNet_FT"] = round(prediction_MobileNet_FT[0][0].tolist(),4)
-        
-        
-        # Prepare a dictionary to accumulate results for each model across all valid images
-        
-        for i in valid_img:
+    try:
+
+        # Call load_models to initialize both PyTorch models
+        dl_models = load_models()
+        # final_decision = "no similarity"
+        # flag_decision = 0 
+        img1_path = check_and_convert_svgtopng(img1_path)
+        if img1_path is None:
+            return None
+        else: 
+            all_similarity_result = {}
+            all_similarity = {
+            'VGG16': [],
+            'EfficientNet_B0': [],
+            'MobileNet': [],
+            'SSIM': []
+            }
+            # img = preprocess_image(img_path, target_size=(224, 224), remove_metadata=True)
+            img = load_img(img1_path, target_size=(224, 224))
+
+
+            img_array = img_to_array(img) / 255.0  
+            img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
+            if img is None:
+                # print(f"Skipping comparison due to invalid images: {img1_path}, {img2_path}")
+                print(f"Skipping comparison due to invalid images")
+                return None
+                # img_array = tf.expand_dims(img, axis=0)  # Add batch dimension
+                # Predict
+            prediction_MobileNet_FT = model.predict(img_array)
+            all_similarity_result["MobileNet_FT"] = round(prediction_MobileNet_FT[0][0].tolist(),4)
             
-            img2_path = f"{valid_img_path}{i}"
-            dl_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+            
+            if all_similarity_result["MobileNet_FT"] <= 0.1:
+                return {"MobileNet_FT" : 0.1 ,'EfficientNet_B0' : 0.0 , 'MobileNet' : 0.0 , "avg_not_trained" : 0.0  }
 
-            # print(i)
-            # print(f"all dl similarity are {all_similarity}")
-            ssim_score = round(float(compute_ssim(img1_path, img2_path)),4)
-            if "error" in dl_similarity:
-                print("Skipping invalid comparison.")
-                continue
-            # Append each score to the result lists
-            all_similarity['VGG16'].append(dl_similarity['VGG16'])
-            all_similarity['EfficientNet_B0'].append(dl_similarity['EfficientNet_B0'])
-            all_similarity['MobileNet'].append(dl_similarity['MobileNet'])
-            all_similarity['SSIM'].append(ssim_score)
-            # Print intermediate results
-            # print(i)
-            # print(f"all similarity are {{'VGG16': {dl_similarity['VGG16']}, 'EfficientNet_B0': {dl_similarity['EfficientNet_B0']}, 'MobileNet': {dl_similarity['MobileNet']}, 'SSIM': {ssim_score}}}")
+            else:
 
-    if method == "Max":
-        # all_similarity_result['VGG16'] = all_similarity['VGG16'].max()
-        all_similarity_result['EfficientNet_B0'] = max(all_similarity['EfficientNet_B0'])       
-        all_similarity_result['MobileNet'] = max(all_similarity['MobileNet'])
-        # all_similarity_result['SSIM'] = max(all_similarity['SSIM'])
-        all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
-    elif method == "Min":
-        # all_similarity_result['VGG16'] = min(all_similarity['VGG16'])
-        all_similarity_result['EfficientNet_B0'] = min(all_similarity['EfficientNet_B0'])       
-        all_similarity_result['MobileNet'] = min(all_similarity['MobileNet'])
-        # all_similarity_result['SSIM'] = min(all_similarity['SSIM'])
-        all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
-    elif method == "Average":
-        # all_similarity_result['VGG16'] = mean(all_similarity['VGG16'])
-        all_similarity_result['EfficientNet_B0'] = round(sum(all_similarity['EfficientNet_B0'])/len(all_similarity['EfficientNet_B0']) , 4)       
-        all_similarity_result['MobileNet'] = round(sum(all_similarity['MobileNet'])/len(all_similarity['MobileNet']) , 4)
-        # all_similarity_result['SSIM'] = round(sum(all_similarity['SSIM'])/len(all_similarity['SSIM']) , 4)
-        all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
-    return all_similarity_result
+                # Prepare a dictionary to accumulate results for each model across all valid images
+                
+                for i in valid_img:
+                    
+                    img2_path = f"{valid_img_path}{i}"
+                    dl_similarity= compute_similarity(img1_path, img2_path, dl_models, transform)
+
+                    # print(i)
+                    # print(f"all dl similarity are {all_similarity}")
+                    ssim_score = round(float(compute_ssim(img1_path, img2_path)),4)
+                    if "error" in dl_similarity:
+                        print("Skipping invalid comparison.")
+                        continue
+                    # Append each score to the result lists
+                    # all_similarity['VGG16'].append(dl_similarity['VGG16'])
+                    all_similarity['EfficientNet_B0'].append(dl_similarity['EfficientNet_B0'])
+                    all_similarity['MobileNet'].append(dl_similarity['MobileNet'])
+                    # all_similarity['SSIM'].append(ssim_score)
+                    # Print intermediate results
+                    # print(i)
+                    # print(f"all similarity are {{'VGG16': {dl_similarity['VGG16']}, 'EfficientNet_B0': {dl_similarity['EfficientNet_B0']}, 'MobileNet': {dl_similarity['MobileNet']}, 'SSIM': {ssim_score}}}")
+
+            if method == "Max":
+                # all_similarity_result['VGG16'] = all_similarity['VGG16'].max()
+                all_similarity_result['EfficientNet_B0'] = max(all_similarity['EfficientNet_B0'])       
+                all_similarity_result['MobileNet'] = max(all_similarity['MobileNet'])
+                # all_similarity_result['SSIM'] = max(all_similarity['SSIM'])
+                all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
+            elif method == "Min":
+                # all_similarity_result['VGG16'] = min(all_similarity['VGG16'])
+                all_similarity_result['EfficientNet_B0'] = min(all_similarity['EfficientNet_B0'])       
+                all_similarity_result['MobileNet'] = min(all_similarity['MobileNet'])
+                # all_similarity_result['SSIM'] = min(all_similarity['SSIM'])
+                all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
+            elif method == "Average":
+                # all_similarity_result['VGG16'] = mean(all_similarity['VGG16'])
+                all_similarity_result['EfficientNet_B0'] = round(sum(all_similarity['EfficientNet_B0'])/len(all_similarity['EfficientNet_B0']) , 4)       
+                all_similarity_result['MobileNet'] = round(sum(all_similarity['MobileNet'])/len(all_similarity['MobileNet']) , 4)
+                # all_similarity_result['SSIM'] = round(sum(all_similarity['SSIM'])/len(all_similarity['SSIM']) , 4)
+                all_similarity_result["avg_not_trained"] = round((all_similarity_result['EfficientNet_B0']+ all_similarity_result['MobileNet'])/2 , 4)
+            return all_similarity_result
+    except UnidentifiedImageError:
+            print(f"Skipping invalid file (unidentified image): {img1_path}")
+            return None
+    except Exception as e:
+            print(f"Unexpected error loading {img1_path}: {e}")
+            return None
 ##########################################################################
 
 
 def logo_similarity_make_decision(all_similarity_result):
-
+    if all_similarity_result is None:
+        # Decide how to handle this scenario:
+        # e.g. return ("Invalid input", "No decision")
+        return "Invalid input", "Skip"
     # all_similarity_result = logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , model)
     similarity_FT = all_similarity_result["MobileNet_FT"]
     avg_similarity = all_similarity_result["avg_not_trained"]
