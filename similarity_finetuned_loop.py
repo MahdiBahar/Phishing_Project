@@ -14,12 +14,6 @@ model = tf.keras.models.load_model(
 )
 
 def process_images_in_folders(base_dir, model):
-    """
-    Iterates over all subfolders in 'base_dir',
-    runs the similarity + decision pipeline on each image,
-    and copies the image to an output subfolder based on the decision comment.
-    Returns a list of dictionaries with results for possible logging to CSV.
-    """
 
     # Where to save the images according to their decision
     save_dir = "/home/mahdi/Phishing_Project/detected_logos/1500_detected"
@@ -84,10 +78,10 @@ def process_images_in_folders(base_dir, model):
 
 # Example usage
 
-# 1) Configure your base directory of images
+# Configure base directory of images
 base_dir = "/home/mahdi/Datasets/Logo_Data_1500/"  # put your top-level folder here
 # base_dir = "/home/mahdi/Datasets/4/"
-# 2) Provide the references (valid_img, valid_img_path) used by your calculation function
+# Provide the references (valid_img, valid_img_path) used by calculation function
 valid_img = [
     "BM_LOGO-00.png",
     "BM_LOGO-01.png",
@@ -98,10 +92,10 @@ valid_img = [
 ]
 valid_img_path = "/home/mahdi/Phishing_Project/Valid_images/"
 
-# 3) Run the pipeline
+# Run the pipeline
 results = process_images_in_folders(base_dir, model)
 
-# # 4) Print results in console
+# # Print results in console
 # if results:
 #     for r in results:
 #         print(f"Folder: {r['folder']}, File: {r['file_name']}, "
@@ -109,7 +103,7 @@ results = process_images_in_folders(base_dir, model)
 # else:
 #     print("No results were generated. Check if images are valid and present in the folder.")
 
-# 5) Optionally save results to CSV
+# Save results to CSV
 output_csv_path = "/home/mahdi/Phishing_Project/output_result_csv/decision_results_1500.csv"
 if results:
     # Decide which headers you want to store

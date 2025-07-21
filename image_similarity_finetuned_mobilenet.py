@@ -15,10 +15,9 @@ import cairosvg
 # import logging 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
+
 #########################################################
-
-
-
 # convert svg to png
 def check_and_convert_svgtopng(image_path):
     try:
@@ -104,12 +103,7 @@ def compute_ssim(image1_path, image2_path):
         # Compute SSIM
         similarity, _ = ssim(img1_gray, img2_gray, full=True, data_range=1.0)
         return round(similarity, 4)
-
-
-    # except FileNotFoundError:
-    #     print(f"File not found: {image1_path} or {image2_path}")
-    # except UnidentifiedImageError:
-    #     print(f"Invalid image file: {image1_path}")
+    
     except Exception as e:
         print(f"Unexpected error computing SSIM: {e}")
     return -1.0
@@ -138,7 +132,7 @@ def load_models():
     }
     return pytorch_models
 
-
+######################################################################################
 #  Extract features and compute cosine similarity
 def compute_similarity(img1_path, img2_path, dl_models , transform):
     # print("\n### PyTorch Models ###")
@@ -175,15 +169,14 @@ def compute_similarity(img1_path, img2_path, dl_models , transform):
     return similarity_dict
 
 
-
+####################################################################################
+# Calculate similarity
 def logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , model):
 
     try:
 
         # Call load_models to initialize both PyTorch models
         dl_models = load_models()
-        # final_decision = "no similarity"
-        # flag_decision = 0 
         img1_path = check_and_convert_svgtopng(img1_path)
         if img1_path is None:
             return None
@@ -202,7 +195,7 @@ def logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , 
             img_array = img_to_array(img) / 255.0  
             img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
             if img is None:
-                # print(f"Skipping comparison due to invalid images: {img1_path}, {img2_path}")
+                
                 print(f"Skipping comparison due to invalid images")
                 return None
                 # img_array = tf.expand_dims(img, axis=0)  # Add batch dimension
@@ -234,7 +227,6 @@ def logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , 
                     all_similarity['EfficientNet_B0'].append(dl_similarity['EfficientNet_B0'])
                     all_similarity['MobileNet'].append(dl_similarity['MobileNet'])
                     # all_similarity['SSIM'].append(ssim_score)
-                    # Print intermediate results
                     # print(i)
                     # print(f"all similarity are {{'VGG16': {dl_similarity['VGG16']}, 'EfficientNet_B0': {dl_similarity['EfficientNet_B0']}, 'MobileNet': {dl_similarity['MobileNet']}, 'SSIM': {ssim_score}}}")
 
@@ -264,8 +256,7 @@ def logo_similarity_calculation (img1_path, valid_img, valid_img_path, method , 
             print(f"Unexpected error loading {img1_path}: {e}")
             return None
 ##########################################################################
-
-
+# Decision Making function
 def logo_similarity_make_decision(all_similarity_result):
     if all_similarity_result is None:
         # Decide how to handle this scenario:
@@ -275,9 +266,17 @@ def logo_similarity_make_decision(all_similarity_result):
     similarity_FT = all_similarity_result["MobileNet_FT"]
     avg_similarity = all_similarity_result["avg_not_trained"]
 
-
-    if similarity_FT >= 0.8 and avg_similarity >= 0.5:
+    if similarity_FT >= 0.955 and avg_similarity >= 0.5:
         return "Sure", 1
+    if similarity_FT >= 0.85 and avg_similarity >= 0.58:
+        return "Sure", 1
+    elif similarity_FT < 0.85 and similarity_FT >= 0.8 and avg_similarity >= 0.7:
+        return "Sure", 1
+    elif similarity_FT < 0.85 and similarity_FT >= 0.8 and avg_similarity < 0.7 and avg_similarity >= 0.58:
+        return "Maybe_positive", 0.75
+    elif similarity_FT >= 0.8 and avg_similarity < 0.58 and avg_similarity >= 0.5 :
+        return "Maybe_positive", 0.75
+    
     elif similarity_FT < 0.8 and similarity_FT >= 0.6 and avg_similarity >= 0.6:
         return "Maybe_positive", 0.75
     elif similarity_FT < 0.6 and similarity_FT >= 0.5 and avg_similarity >= 0.5:
@@ -286,35 +285,3 @@ def logo_similarity_make_decision(all_similarity_result):
         return "Never ever", 0.0
     else:
         return "Never", 0.25
-
-
-
-
-# def logo_similarity_make_decision (img_path, model):
-
-#     # Preprocess both images (handle all formats, including PNG fixes)
-
-#     try: 
-#         img_path = check_and_convert_svgtopng(img_path)
-#         if img_path is None:
-#             return ["An error is occured" , 0 , "None"]
-#         else: 
-#             # img = preprocess_image(img_path, target_size=(224, 224), remove_metadata=True)
-#             img = load_img(img_path, target_size=(224, 224))
-#             img_array = img_to_array(img) / 255.0  
-#             img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
-#             #check the image is invalid or not
-#             if img is None:
-#                 # print(f"Skipping comparison due to invalid images: {img1_path}, {img2_path}")
-#                 print(f"Skipping comparison due to invalid images")
-#                 return "Invalid image(s)", 0 , "None"
-#             # img_array = tf.expand_dims(img, axis=0)  # Add batch dimension
-#             # Predict
-#             prediction = model.predict(img_array)
-#             if prediction[0][0] > 0.8:
-#                 return "Bank Mellat Logo", 1, f'{prediction[0][0]:.4f}'
-#             else:
-#                 return "Not Logo", 0 , f'{prediction[0][0]:.4f}'
-#     except Exception as e:
-#         print (e)
-#         return "Invalid image(s)", 0 , "None"
